@@ -1,6 +1,7 @@
 // src/screens/HomeScreen.tsx
 import { useState } from 'react'
 import { useGame } from '../context/GameContext'
+import { LeaderboardScreen } from './LeaderboardScreen'
 
 export function HomeScreen() {
   const { nickname, createRoom, joinRoom, error } = useGame()
@@ -8,6 +9,7 @@ export function HomeScreen() {
   const [maxRounds, setMaxRounds] = useState<1 | 3 | 5>(3)
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   async function handleCreate() {
     if (!nickname) return
@@ -22,6 +24,10 @@ export function HomeScreen() {
     setJoining(true)
     await joinRoom(joinCode.trim().toUpperCase(), nickname)
     setJoining(false)
+  }
+
+  if (showLeaderboard) {
+    return <LeaderboardScreen onBack={() => setShowLeaderboard(false)} />
   }
 
   return (
@@ -79,13 +85,12 @@ export function HomeScreen() {
           </button>
         </form>
 
-        {/* Leaderboard — will be wired in Task 12 */}
+        {/* Leaderboard */}
         <button
-          disabled
-          className="w-full text-white/40 py-2 text-center cursor-not-allowed"
-          title="排行榜功能即將推出"
+          onClick={() => setShowLeaderboard(true)}
+          className="w-full text-white/70 hover:text-white py-2 text-center transition-colors"
         >
-          🏆 排行榜（即將推出）
+          🏆 排行榜
         </button>
       </div>
     </div>
