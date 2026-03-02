@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function LeaderboardScreen({ onBack }: Props) {
-  const { alltime, seasonal, loading, season } = useLeaderboard()
+  const { alltime, seasonal, loading, error, season } = useLeaderboard()
   const [tab, setTab] = useState<'alltime' | 'season'>('alltime')
 
   const entries: [string, LeaderboardEntry][] = tab === 'alltime' ? alltime : seasonal
@@ -57,6 +57,11 @@ export function LeaderboardScreen({ onBack }: Props) {
         {/* Content */}
         {loading ? (
           <p className="text-center text-white/70 py-8 animate-pulse">載入排行榜...</p>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-300 text-lg">載入失敗</p>
+            <p className="text-white/30 text-sm mt-1">{error}</p>
+          </div>
         ) : entries.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-white/50 text-lg">還沒有記錄</p>
@@ -72,7 +77,7 @@ export function LeaderboardScreen({ onBack }: Props) {
                 <span className="text-white font-bold flex-1 truncate">{entry.nickname}</span>
                 <div className="text-right ml-2">
                   <div className="text-festive-gold font-black">{entry.wins} 勝</div>
-                  <div className="text-white/50 text-xs">{(entry.winRate * 100).toFixed(0)}%</div>
+                  <div className="text-white/50 text-xs">{((entry.winRate ?? 0) * 100).toFixed(0)}%</div>
                 </div>
               </div>
             ))}
