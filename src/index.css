@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background-color: #DC2626;
+  min-height: 100vh;
+}
