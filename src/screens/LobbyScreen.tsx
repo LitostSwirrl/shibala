@@ -1,8 +1,12 @@
 // src/screens/LobbyScreen.tsx
+import { useState } from 'react'
 import { useGame } from '../context/GameContext'
 
 export function LobbyScreen() {
   const { room, roomId, uid, setReady, startGame, leaveRoom } = useGame()
+  const [readying, setReadying] = useState(false)
+  const [starting, setStarting] = useState(false)
+
   if (!room || !roomId) return null
 
   const players = Object.entries(room.players)
@@ -10,6 +14,26 @@ export function LobbyScreen() {
   const isHost = room.hostUid === uid
   const myPlayer = uid ? room.players[uid] : null
   const canStart = isHost && allReady && players.length >= 2
+
+  async function handleReady() {
+    setReadying(true)
+    await setReady()
+    setReadying(false)
+  }
+
+  async function handleStart() {
+    setStarting(true)
+    await startGame()
+    setStarting(false)
+  }
+
+  async function handleLeave() {
+    const isLastPlayer = Object.keys(room.players).length === 1
+    if (isHost && isLastPlayer) {
+      if (!window.confirm('離開後房間將會關閉，確定要離開嗎？')) return
+    }
+    await leaveRoom()
+  }
 
   return (
     <div className="min-h-screen bg-festive-red flex flex-col items-center justify-center p-4">
@@ -41,20 +65,22 @@ export function LobbyScreen() {
         {/* Ready button (non-host or not yet ready) */}
         {!myPlayer?.ready && (
           <button
-            onClick={setReady}
-            className="w-full bg-white text-festive-red font-black text-xl py-3 rounded-xl hover:bg-festive-cream transition-colors"
+            onClick={handleReady}
+            disabled={readying}
+            className="w-full bg-white text-festive-red font-black text-xl py-3 rounded-xl hover:bg-festive-cream disabled:opacity-50 transition-colors"
           >
-            我準備好了!
+            {readying ? '準備中...' : '我準備好了!'}
           </button>
         )}
 
         {/* Start button (host only, all ready, 2+ players) */}
         {canStart && (
           <button
-            onClick={startGame}
-            className="w-full bg-festive-gold text-white font-black text-xl py-3 rounded-xl animate-bounce"
+            onClick={handleStart}
+            disabled={starting}
+            className="w-full bg-festive-gold text-white font-black text-xl py-3 rounded-xl animate-bounce disabled:opacity-50"
           >
-            開始遊戲! 🎲
+            {starting ? '開始中...' : '開始遊戲! 🎲'}
           </button>
         )}
 
@@ -69,7 +95,7 @@ export function LobbyScreen() {
         )}
 
         <button
-          onClick={leaveRoom}
+          onClick={handleLeave}
           className="w-full text-white/50 hover:text-white text-center py-2 transition-colors"
         >
           離開房間

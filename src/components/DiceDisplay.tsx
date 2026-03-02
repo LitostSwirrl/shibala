@@ -16,7 +16,7 @@ export function DiceDisplay({ dice, rolling = false }: DiceDisplayProps) {
       {dice.length > 0
         ? dice.map((d, i) => (
             <motion.div
-              key={i}
+              key={`${i}-${rolling}`}
               className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-4xl shadow-lg select-none"
               animate={rolling
                 ? { rotate: [0, 180, 360, 540, 720], scale: [1, 1.2, 0.9, 1.1, 1] }
