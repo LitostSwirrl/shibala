@@ -9,10 +9,11 @@ import { calculateScore } from '../game/scoring'
 export function GameScreen() {
   const { room, uid, nickname, roll, leaveRoom } = useGame()
   const [rolling, setRolling] = useState(false)
+  const [rollError, setRollError] = useState<string | null>(null)
 
   if (!room || !uid) return null
 
-  const players = Object.entries(room.players)
+  const players = Object.entries(room.players).sort(([a], [b]) => a.localeCompare(b))
   const myPlayer = room.players[uid]
   const hasRolled = myPlayer?.rolled ?? false
   const isFinished = room.status === 'finished'
@@ -20,11 +21,17 @@ export function GameScreen() {
   async function handleRoll() {
     if (hasRolled || rolling || !nickname) return
     setRolling(true)
-    const dice = rollDice()
-    // Wait for animation to play (0.9s)
-    await new Promise<void>(resolve => setTimeout(resolve, 900))
-    await roll(dice, nickname)
-    setRolling(false)
+    setRollError(null)
+    try {
+      const dice = rollDice()
+      await new Promise<void>(resolve => setTimeout(resolve, 900))
+      await roll(dice, nickname)
+    } catch (err) {
+      console.error('[handleRoll]', err)
+      setRollError('擲骰失敗，請再試一次')
+    } finally {
+      setRolling(false)
+    }
   }
 
   // Determine game winner (player with most round wins)
@@ -61,7 +68,7 @@ export function GameScreen() {
         <div className="space-y-3">
           {players.map(([pid, player]) => {
             const isMe = pid === uid
-            const result = player.dice.length > 0 ? calculateScore(player.dice) : null
+            const result = (player.dice ?? []).length > 0 ? calculateScore(player.dice ?? []) : null
 
             return (
               <div
@@ -117,6 +124,9 @@ export function GameScreen() {
         </div>
 
         {/* Roll button */}
+        {rollError && (
+          <p className="text-center text-red-300 text-sm">{rollError}</p>
+        )}
         {!isFinished && !hasRolled && (
           <motion.button
             whileTap={{ scale: 0.95 }}
