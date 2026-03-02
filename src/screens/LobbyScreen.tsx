@@ -17,14 +17,12 @@ export function LobbyScreen() {
 
   async function handleReady() {
     setReadying(true)
-    await setReady()
-    setReadying(false)
+    try { await setReady() } finally { setReadying(false) }
   }
 
   async function handleStart() {
     setStarting(true)
-    await startGame()
-    setStarting(false)
+    try { await startGame() } finally { setStarting(false) }
   }
 
   async function handleLeave() {
