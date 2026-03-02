@@ -4,8 +4,9 @@ import { db } from './firebase'
 
 export const roomRef = (roomId: string) => ref(db, `rooms/${roomId}`)
 export const playerRef = (uid: string) => ref(db, `players/${uid}`)
-export const leaderboardRef = (key: 'alltime' | string) => ref(db, `leaderboard/${key}`)
+export const leaderboardRef = (key: string) => ref(db, `leaderboard/${key}`)
 export const topLeaderboardQuery = (key: string) =>
   query(leaderboardRef(key), orderByChild('wins'), limitToLast(20))
 
+// Re-export core database primitives so consumers import from one place
 export { ref, set, get, update, onValue, push, remove }
