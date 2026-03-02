@@ -1,8 +1,10 @@
 // src/App.tsx
 import { useGame } from './context/GameContext'
+import { NicknameModal } from './components/NicknameModal'
+import { HomeScreen } from './screens/HomeScreen'
 
 export default function App() {
-  const { loading } = useGame()
+  const { loading, nickname, uid } = useGame()
 
   if (loading) return (
     <div className="min-h-screen bg-festive-red flex items-center justify-center">
@@ -10,9 +12,7 @@ export default function App() {
     </div>
   )
 
-  return (
-    <div className="min-h-screen bg-festive-red flex items-center justify-center">
-      <h1 className="text-festive-gold text-4xl font-black font-game">十八啦!</h1>
-    </div>
-  )
+  if (!nickname && uid) return <NicknameModal />
+
+  return <HomeScreen />
 }

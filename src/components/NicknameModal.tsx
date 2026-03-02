@@ -6,13 +6,20 @@ export function NicknameModal() {
   const { setNickname } = useGame()
   const [value, setValue] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = value.trim()
     if (!trimmed) return
     setLoading(true)
-    await setNickname(trimmed)
+    setError(null)
+    try {
+      await setNickname(trimmed)
+    } catch {
+      setError('設定暱稱失敗，請再試一次')
+      setLoading(false)
+    }
   }
 
   return (
@@ -20,6 +27,9 @@ export function NicknameModal() {
       <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl border-4 border-festive-gold">
         <h1 className="text-3xl font-black text-center text-festive-red mb-2 font-game">🎲 十八啦!</h1>
         <p className="text-center text-gray-500 mb-6">請輸入你的暱稱</p>
+        {error && (
+          <p className="text-red-500 text-center text-sm mb-3">{error}</p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             className="w-full border-2 border-festive-gold rounded-lg px-4 py-3 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-festive-red"

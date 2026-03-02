@@ -79,11 +79,13 @@ export function HomeScreen() {
           </button>
         </form>
 
-        {/* Leaderboard placeholder */}
+        {/* Leaderboard — will be wired in Task 12 */}
         <button
-          className="w-full text-white/70 hover:text-white py-2 text-center transition-colors"
+          disabled
+          className="w-full text-white/40 py-2 text-center cursor-not-allowed"
+          title="排行榜功能即將推出"
         >
-          🏆 排行榜
+          🏆 排行榜（即將推出）
         </button>
       </div>
     </div>
