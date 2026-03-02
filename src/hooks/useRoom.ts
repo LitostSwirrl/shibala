@@ -42,6 +42,7 @@ export function useRoom(uid: string | null) {
   }
 
   async function joinRoom(id: string, nickname: string): Promise<void> {
+    setError(null)  // clear any previous error
     if (!uid) return
     const snap = await get(roomRef(id))
     const existing = snap.val() as Room | null
@@ -61,7 +62,7 @@ export function useRoom(uid: string | null) {
   }
 
   async function startGame(): Promise<void> {
-    if (!roomId) return
+    if (!roomId || !room || room.hostUid !== uid) return
     await update(roomRef(roomId), { status: 'playing', round: 1 })
   }
 
@@ -102,8 +103,15 @@ export function useRoom(uid: string | null) {
 
       if (isGameOver({ ...room, round: room.round })) {
         updates['status'] = 'finished'
+        // Compute projected round win totals (post-last-round) before RTDB write
+        const projectedPlayerScores = Object.fromEntries(
+          Object.entries(room.players).map(([pid, p]) => [
+            pid,
+            pid === winner ? (p.score + 1) : p.score,
+          ])
+        )
         // Finalize stats async — don't block the room update
-        void finalizeGame(room, roundScores, uid, nickname)
+        void finalizeGame(room, projectedPlayerScores, roundScores, uid, nickname)
       } else {
         // Reset for next round
         updates['round'] = room.round + 1
@@ -134,14 +142,16 @@ export function useRoom(uid: string | null) {
 
 async function finalizeGame(
   room: Room,
+  projectedPlayerScores: Record<string, number>,  // uid -> total round wins (post-last-round)
   lastRoundScores: Record<string, number>,
   myUid: string,
   myNickname: string
 ): Promise<void> {
-  // Determine game winner by total round wins (score field in players)
-  const scores = Object.entries(room.players).map(([uid, p]) => ({ uid, score: p.score }))
-  const maxScore = Math.max(...scores.map(s => s.score))
-  const gameWinners = scores.filter(s => s.score === maxScore).map(s => s.uid)
+  // Determine game winner using projected scores (includes last round's winner increment)
+  const maxScore = Math.max(...Object.values(projectedPlayerScores))
+  const gameWinners = Object.entries(projectedPlayerScores)
+    .filter(([, s]) => s === maxScore)
+    .map(([uid]) => uid)
   const iWon = gameWinners.includes(myUid)
 
   const season = getCurrentSeason()
@@ -154,6 +164,7 @@ async function finalizeGame(
     losses: 0,
     highScore: 0,
     seasonKey: season,
+    seasonWins: 0,
   }
 
   // Find highest single-round score this player got (across all rounds)
@@ -163,6 +174,17 @@ async function finalizeGame(
   myRoundScores.push(Math.max(lastRoundScores[myUid] ?? 0, 0))
   const myHighScore = Math.max(...myRoundScores, 0)
 
+  // Compute seasonal wins
+  const isNewSeason = stats.seasonKey !== season
+  const seasonWins = isNewSeason
+    ? (iWon ? 1 : 0)
+    : stats.seasonWins + (iWon ? 1 : 0)
+  // NOTE: seasonWinRate is approximate — uses total gamesPlayed, not season-only games.
+  // This is acceptable for MVP.
+  const seasonWinRate = (isNewSeason ? 1 : stats.gamesPlayed + 1) > 0
+    ? seasonWins / (isNewSeason ? 1 : stats.gamesPlayed + 1)
+    : 0
+
   const updatedStats: PlayerStats = {
     ...stats,
     gamesPlayed: stats.gamesPlayed + 1,
@@ -170,6 +192,7 @@ async function finalizeGame(
     losses: iWon ? stats.losses : stats.losses + 1,
     highScore: Math.max(stats.highScore, myHighScore),
     seasonKey: season,
+    seasonWins,
   }
 
   const winRate = updatedStats.gamesPlayed > 0
@@ -179,7 +202,7 @@ async function finalizeGame(
   await rtdbUpdate(ref(db), {
     [`players/${myUid}`]: updatedStats,
     [`leaderboard/alltime/${myUid}`]: { nickname: myNickname, wins: updatedStats.wins, winRate },
-    [`leaderboard/${season}/${myUid}`]: { nickname: myNickname, wins: updatedStats.wins, winRate },
+    [`leaderboard/${season}/${myUid}`]: { nickname: myNickname, wins: seasonWins, winRate: seasonWinRate },
   })
 }
 

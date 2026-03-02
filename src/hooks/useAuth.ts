@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { playerRef, get, set } from '../lib/rtdb'
+import { playerRef, get, set, update } from '../lib/rtdb'
 import type { PlayerStats } from '../types'
 
 interface AuthState {
@@ -31,15 +31,23 @@ export function useAuth() {
     return unsubscribe
   }, [])
 
-  async function setNickname(nickname: string, uid: string) {
-    await set(playerRef(uid), {
-      nickname,
-      gamesPlayed: 0,
-      wins: 0,
-      losses: 0,
-      highScore: 0,
-      seasonKey: '',
-    } satisfies PlayerStats)
+  async function setNickname(nickname: string) {
+    const currentUid = state.uid
+    if (!currentUid) return
+    const snap = await get(playerRef(currentUid))
+    if (snap.exists()) {
+      await update(playerRef(currentUid), { nickname })
+    } else {
+      await set(playerRef(currentUid), {
+        nickname,
+        gamesPlayed: 0,
+        wins: 0,
+        losses: 0,
+        highScore: 0,
+        seasonKey: '',
+        seasonWins: 0,
+      } satisfies PlayerStats)
+    }
     setState(prev => ({ ...prev, nickname }))
   }
 

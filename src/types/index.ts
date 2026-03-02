@@ -33,6 +33,7 @@ export interface PlayerStats {
   losses: number
   highScore: number
   seasonKey: string
+  seasonWins: number  // wins in the current season
 }
 
 export interface LeaderboardEntry {
