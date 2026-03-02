@@ -3,6 +3,7 @@ import { useGame } from './context/GameContext'
 import { NicknameModal } from './components/NicknameModal'
 import { HomeScreen } from './screens/HomeScreen'
 import { LobbyScreen } from './screens/LobbyScreen'
+import { GameScreen } from './screens/GameScreen'
 
 export default function App() {
   const { loading, nickname, uid, room, roomId } = useGame()
@@ -15,7 +16,7 @@ export default function App() {
 
   if (!nickname && uid) return <NicknameModal />
   if (room?.status === 'waiting' && roomId) return <LobbyScreen />
-  // GameScreen: room?.status === 'playing' || 'finished' — added in Task 11
+  if ((room?.status === 'playing' || room?.status === 'finished') && roomId) return <GameScreen />
 
   return <HomeScreen />
 }
