@@ -2,6 +2,7 @@
   "name": "shibala",
   "private": true,
   "version": "0.0.0",
+  "homepage": "https://jinsoon.github.io/shibala",
   "type": "module",
   "scripts": {
     "dev": "vite",
