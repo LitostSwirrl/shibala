@@ -39,6 +39,9 @@ describe('isGameOver', () => {
   it('returns true when current round equals maxRounds', () => {
     expect(isGameOver({ ...baseRoom, round: 3, maxRounds: 3 })).toBe(true)
   })
+  it('returns true when round exceeds maxRounds', () => {
+    expect(isGameOver({ ...baseRoom, round: 5, maxRounds: 3 })).toBe(true)
+  })
 })
 
 describe('getCurrentSeason', () => {

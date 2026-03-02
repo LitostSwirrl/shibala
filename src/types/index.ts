@@ -42,3 +42,9 @@ export interface LeaderboardEntry {
 }
 
 export type Screen = 'home' | 'lobby' | 'game' | 'leaderboard'
+
+export interface ScoreResult {
+  score: number
+  pig: boolean        // no pair = 豬頭
+  loseByOnes: boolean // pair of 1s = instant lose
+}

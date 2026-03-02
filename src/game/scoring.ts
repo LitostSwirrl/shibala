@@ -1,10 +1,7 @@
 // src/game/scoring.ts
 
-export interface ScoreResult {
-  score: number
-  pig: boolean        // no pair = 豬頭
-  loseByOnes: boolean // pair of 1s = instant lose
-}
+import type { ScoreResult } from '../types'
+export type { ScoreResult }  // re-export so existing test imports still work
 
 export function calculateScore(dice: number[]): ScoreResult {
   // Four of a kind = max score

@@ -7,11 +7,12 @@ describe('rollDice', () => {
     expect(rollDice()).toHaveLength(4)
   })
   it('all values between 1 and 6', () => {
-    const roll = rollDice()
-    roll.forEach(d => {
-      expect(d).toBeGreaterThanOrEqual(1)
-      expect(d).toBeLessThanOrEqual(6)
-    })
+    for (let i = 0; i < 200; i++) {
+      rollDice().forEach(d => {
+        expect(d).toBeGreaterThanOrEqual(1)
+        expect(d).toBeLessThanOrEqual(6)
+      })
+    }
   })
 })
 
