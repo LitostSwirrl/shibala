@@ -112,6 +112,7 @@ export function useRoom(uid: string | null) {
         )
         // Finalize stats async — don't block the room update
         void finalizeGame(room, projectedPlayerScores, roundScores, uid, nickname)
+          .catch(err => console.error('[finalizeGame]', err))
       } else {
         // Reset for next round
         updates['round'] = room.round + 1
@@ -178,7 +179,7 @@ async function finalizeGame(
   const isNewSeason = stats.seasonKey !== season
   const seasonWins = isNewSeason
     ? (iWon ? 1 : 0)
-    : stats.seasonWins + (iWon ? 1 : 0)
+    : (stats.seasonWins ?? 0) + (iWon ? 1 : 0)
   // NOTE: seasonWinRate is approximate — uses total gamesPlayed, not season-only games.
   // This is acceptable for MVP.
   const seasonWinRate = (isNewSeason ? 1 : stats.gamesPlayed + 1) > 0
