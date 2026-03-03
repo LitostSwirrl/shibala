@@ -17,15 +17,23 @@ export function useAuth() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const snap = await get(playerRef(user.uid))
-        const existing = snap.val() as PlayerStats | null
-        setState({
-          uid: user.uid,
-          nickname: existing?.nickname ?? null,
-          loading: false,
-        })
+        try {
+          const snap = await get(playerRef(user.uid))
+          const existing = snap.val() as PlayerStats | null
+          setState({
+            uid: user.uid,
+            nickname: existing?.nickname ?? null,
+            loading: false,
+          })
+        } catch {
+          setState({ uid: user.uid, nickname: null, loading: false })
+        }
       } else {
-        await signInAnonymously(auth)
+        try {
+          await signInAnonymously(auth)
+        } catch {
+          setState({ uid: null, nickname: null, loading: false })
+        }
       }
     })
     return unsubscribe
